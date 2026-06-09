@@ -1,108 +1,296 @@
-import streamlit as st
-import google.generativeai as genai
-from PIL import Image
-
-# إعدادات واجهة المستخدم لتتناسب مع الهواتف الذكية وتدعم اللغة العربية
-st.set_page_config(
-    page_title="مساعد التاجر وصانع المحتوى الذكي",
-    page_icon="🚀",
-    layout="centered"
-)
-
-# تنسيق مخصص لتصميم انسيابي ومتجاوب مع الهواتف الذكية
-st.markdown("""
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Cookie check</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-    .reportview-container { text-align: right; direction: RTL; }
-    .main-title { color: #1E3A8A; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-    .sub-title { color: #4B5563; text-align: center; font-size: 14px; margin-bottom: 25px; }
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        font-family: 'Inter', Helvetica, Arial, sans-serif;
+        background: light-dark(#F8F8F7, #191919);
+        color: light-dark(#1f1f1f, #e3e3e3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .container {
+        background: light-dark(#FFFFFF, #1F1F1F);
+        padding: 32px;
+        border-radius: 16px;
+        border: 1px solid light-dark(#E2E3E4, #3E3E3E);
+        max-width: min(80%, 500px);
+        width: 100%;
+        color: light-dark(#2B2D31, #D4D4D4);
+      }
+
+      h1 {
+        font-size: 20px;
+        font-weight: 500;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        color: light-dark(#2B2D31, #D4D4D4);
+      }
+
+      p {
+        font-size: 14px;
+        color: light-dark(#2B2D31, #D4D4D4);
+        line-height: 21px;
+        margin: 0 0 1.5rem 0;
+      }
+
+      .icon {
+        margin-bottom: 1rem;
+        line-height: 0;
+      }
+
+      .button-container {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 2rem;
+      }
+
+      button {
+        background-color: light-dark(#fff, #323232);
+        color: light-dark(#2B2D31, #FCFCFC);
+        border: 1px solid light-dark(#E2E3E4, #3E3E3E);
+        border-radius: 12px;
+        padding: 8px 12px;
+        font-size: 14px;
+        line-height: 21px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-weight: 400;
+        font-family: 'Inter', Helvetica, Arial, sans-serif;
+        width: 100%;
+      }
+
+      button:hover {
+        background-color: light-dark(#EAEAEB, #424242);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      /* Loading Spinner Animation */
+      .spinner {
+        margin: 0 auto 1.5rem auto;
+        width: 40px;
+        height: 40px;
+        border: 4px solid light-dark(#f0f0f0, #262626);
+        border-top: 4px solid light-dark(#076eff, #87a9ff); /* Blue color */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .logo {
+        border-radius: 10px;
+        display: block;
+        margin: 0 auto 2rem auto;
+      }
+
+      .logo.hidden {
+        display: none;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
-""", unsafe_allow_html=True)
-
-st.markdown('<div class="main-title">🚀 مساعد التاجر وصانع المحتوى الذكي</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">التقط صورة لمنتجك، اكتب مواصفاته، واصنع محتواك التسويقي بلمسة واحدة</div>', unsafe_allow_html=True)
-
-# صندوق إدخال مفتاح الـ API لتفعيل الذكاء الاصطناعي
-api_key = st.text_input("أدخل مفتاح الـ API الخاص بك من Google AI Studio:", type="password")
-
-if api_key:
-    genai.configure(api_key=api_key)
-    
-    st.markdown("### 📸 1. صورة المنتج (اختياري)")
-    # ميزة التقاط الصورة أو رفعها المتوافقة مع كاميرا الموبايل (كما في واجهة AI Studio أمامك)
-    uploaded_file = st.file_uploader("التقط صورة المنتج أو ارفعها من معرض الصور (PNG, JPG)", type=["png", "jpg", "jpeg"])
-    
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption="تم رفع صورة المنتج بنجاح", use_container_width=True)
-    else:
-        image = None
-
-    st.markdown("### 📝 2. تفاصيل المنتج والمحتوى")
-    # إدخال اسم المنتج أولاً لتنظيم النتيجة
-    product_name = st.text_input("اسم المنتج / العنوان الرئيسي:", placeholder="مثال: ساعة ذكية Ultra")
-    
-    # صندوق المواصفات والمستهدفات (الموجود في صورتك)
-    product_features = st.text_area("مواصفات / ميزات المنتج والمستهدفات (سهلة واختيارية):", 
-                                    placeholder="مثال: مقاومة للماء، بطارية تدوم 10 أيام، قياس نبضات القلب، مناسبة للرياضيين...")
-
-    # تحديد نوع المحتوى المطلوب (ميزة إضافية مخصصة لأصحاب المتاجر وصنّاع المحتوى)
-    content_type = st.selectbox(
-        "اختر نوع المحتوى الذي تريد توليده:",
-        ["وصف منتج لمتجر إلكتروني (سلة / زد / Shopify)", 
-         "منشور تسويقي لـ إنستغرام وفيسبوك (مع الهاشتاقات)", 
-         "سكربت / سيناريو فيديو قصير (تيك توك / ريلز)"]
-    )
-
-    # حفظ النص المولد في الذاكرة لمنع اختفائه عند التفاعل
-    if 'final_result' not in st.session_state:
-        st.session_state.final_result = ""
-
-    # زر التشغيل الرئيسي المماثل للزر الأخضر في صورتك
-    if st.button("🔥 تشغيل الذكاء الاصطناعي وتوليد الوصف", use_container_width=True):
-        if not product_name.strip() and not product_features.strip() and image is None:
-            st.warning("الرجاء إدخال اسم المنتج، مواصفاته، أو رفع صورة له على الأقل!")
-        else:
-            with st.spinner("جاري تحليل البيانات وصناعة المحتوى الاحترافي..."):
-                try:
-                    # استخدام نموذج Gemini 1.5 Flash القادر على فهم النصوص والصور معاً
-                    model = genai.GenerativeModel('gemini-1.5-flash')
-                    
-                    # صياغة الأمر الموجه للذكاء الاصطناعي بناءً على الخيارات المحددة
-                    prompt = f"""
-                    أنت خبير تسويق رقمي محترف. قم بكتابة {content_type} باللغة العربية.
-                    اسم المنتج: {product_name}
-                    المواصفات والمميزات: {product_features}
-                    اجعل الأسلوب مشوقاً، جذاباً، ويدفع العميل للشراء، واقترح أفكاراً ذكية للتسويق بناءً على المعطيات.
-                    """
-                    
-                    # إذا قام المستخدم برفع صورة، يتم إرسالها مع النص ليقوم الذكاء الاصطناعي بتحليلها
-                    if image:
-                        response = model.generate_content([prompt, image])
-                    else:
-                        response = model.generate_content(prompt)
-                        
-                    st.session_state.final_result = response.text
-                    st.success("تم توليد المحتوى التسويقي بنجاح! 🎉")
-                except Exception as e:
-                    st.error(f"حدث خطأ أثناء معالجة الطلب: {e}")
-
-    # عرض النتيجة النهائية داخل صندوق نصي قابل للتعديل والنسخ السريع عبر الهاتف
-    if st.session_state.final_result:
-        st.markdown("### 📋 المحتوى الجاهز للاستخدام:")
-        final_output = st.text_area("", value=st.session_state.final_result, height=250)
-        
-        # كود جافا سكريبت المطور المخصص للهواتف لنسخ النص بلمسة واحدة
-        copy_html = f"""
-        <div style="text-align: center; margin-top: 5px;">
-            <button onclick="navigator.clipboard.writeText(`{final_output}`).then(() => alert('📋 تم نسخ المحتوى بنجاح! جاهز للصقه في متجرك أو حسابك.'));" 
-                style="background-color: #10B981; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0px 4px 6px rgba(0,0,0,0.1);">
-                📋 اضغط هنا لنسخ المحتوى بالكامل بلمسة واحدة
-            </button>
+  </head>
+  <body>
+    <div class="container">
+      <img
+        class="logo"
+        src="https://www.gstatic.com/aistudio/ai_studio_favicon_2_256x256.png"
+        alt="AI Studio Logo"
+        width="256"
+        height="256"
+      />
+      <div class="spinner"></div>
+      <div id="error-ui" class="hidden">
+        <div class="icon">
+          <svg
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="48px"
+            height="48px"
+            fill="#D73A49"
+          >
+            <path
+              d="M12,2C6.486,2,2,6.486,2,12s4.486,10,10,10s10-4.486,10-10S17.514,2,12,2z M13,17h-2v-2h2V17z M13,13h-2V7h2V13z"
+            />
+          </svg>
         </div>
-        """
-        st.components.v1.html(copy_html, height=65)
+        <div id="stepOne" class="text-container">
+          <h1>Action required to load your app</h1>
+          <p>
+            It looks like your browser is blocking a required security cookie, which is common on
+            older versions of iOS and Safari.
+          </p>
+          <div class="button-container">
+            <button id="authInSeparateWindowButton" onclick="redirectToReturnUrl(true)">Authenticate in new window</button>
+          </div>
+        </div>
+        <div id="stepTwo" class="text-container hidden">
+          <h1>Action required to load your app</h1>
+          <p>
+            It looks like your browser is blocking a required security cookie, which is common on
+            older versions of iOS and Safari.
+          </p>
+          <div class="button-container">
+            <button id="interactButton" onclick="redirectToReturnUrl(false)">Close and continue</button>
+          </div>
+        </div>
+        <div id="stepThree" class="text-container hidden">
+          <h1>Almost there!</h1>
+          <p>
+            Grant permission for the required security cookie below.
+          </p>
+          <div class="button-container">
+            <button id="grantPermissionButton" onclick="grantStorageAccess()">Grant permission</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const AUTH_FLOW_TEST_COOKIE_NAME = '__SECURE-aistudio_auth_flow_may_set_cookies';
+      const COOKIE_VALUE = 'true';
 
-else:
-    st.info("الرجاء وضع مفتاح الـ API الخاص بك المستخرج من Google AI Studio في الأعلى لتفعيل التطبيق والبدء في استخدامه.")
+      function getCookie(name) {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          let cookie = cookies[i].trim();
+          if (cookie.startsWith(name + '=')) {
+            return cookie.substring(name.length + 1);
+          }
+        }
+        return null;
+      }
 
-st.markdown("<hr><p style='text-align: center; color: #9CA3AF;'>تصميم متجاوب واحترافي مخصص بالكامل لخدمة المتاجر الإلكترونية وصنّاع المحتوى</p>", unsafe_allow_html=True)
+      function setAuthFlowTestCookie() {
+        // Set the cookie's TTL to 1 minute. This is a short lived cookie because it is only used
+        // when the user does not have an auth token or their auth token needs to be reset.
+        // Making this cookie too long-lived allows the user to get into a state where they can't
+        // mint a new auth token.
+        document.cookie = `${AUTH_FLOW_TEST_COOKIE_NAME}=${COOKIE_VALUE}; Path=/; Secure; SameSite=None; Domain=${window.location.hostname}; Partitioned; Max-Age=60;`;
+      }
+
+      /**
+       * Returns true if the test cookie is set, false otherwise.
+       */
+      function authFlowTestCookieIsSet() {
+        return getCookie(AUTH_FLOW_TEST_COOKIE_NAME) === COOKIE_VALUE;
+      }
+
+      /**
+       * Redirects to the return url. If autoClose is true, then the return url will be opened in a
+       * new window, and it will be closed automatically when the page loads.
+       * Options:
+       *   storageAccessGranted: if true, appends __storage_access_granted=1 to
+       *   the return url so the Lua auth script can set the test cookie
+       *   server-side (needed for Safari/iOS where document.cookie is blocked).
+       */
+      async function redirectToReturnUrl(autoClose, storageAccessGranted = false) {
+        const initialReturnUrlStr = new URLSearchParams(window.location.search).get('return_url');
+        const returnUrl = initialReturnUrlStr ? new URL(initialReturnUrlStr) : null;
+
+        // Prevent potentially malicious URLs from being used
+        if (returnUrl.protocol.toLowerCase() === 'javascript:') {
+          console.error('Potentially malicious return URL blocked');
+          return;
+        }
+
+        if (storageAccessGranted) {
+          returnUrl.searchParams.set('__storage_access_granted', '1');
+        }
+
+        if (autoClose) {
+          returnUrl.searchParams.set('__auto_close', '1');
+          const url = new URL(window.location.href);
+          url.searchParams.set('return_url', returnUrl.toString());
+          // Land on the cookie check page first, so the user can interact with it before proceeding
+          // to the return url where cookies can be set.
+          window.open(url.toString(), '_blank');
+          const hasAccess = await document.hasStorageAccess();
+          document.querySelector('#stepOne').classList.add('hidden');
+          if (!hasAccess) {
+            document.querySelector('#stepThree').classList.remove('hidden');
+          } else {
+            window.location.reload();
+          }
+        } else {
+          window.location.href = returnUrl.toString();
+        }
+      }
+
+      /**
+       * Grants the browser permission to set cookies. If successful, then it redirects to the
+       * return url.
+       */
+      async function grantStorageAccess() {
+        try {
+          await document.requestStorageAccess();
+          // Recent Safari/iOS versions block document.cookie entirely in
+          // cross-site iframes, even after requestStorageAccess(). Only
+          // server-side Set-Cookie headers work. Signal to the Lua auth script
+          // via query param so it can set the test cookie server-side.
+          redirectToReturnUrl(false, /* storageAccessGranted= */ true);
+        } catch (err) {
+          console.log('error after button click: ', err);
+        }
+      }
+
+      /**
+       * Verifies that the browser can set cookies. If it can, then it redirects to the return url.
+       * If it can't, then it shows the error UI.
+       */
+      function verifyCanSetCookies() {
+        setAuthFlowTestCookie();
+        if (authFlowTestCookieIsSet()) {
+          // Check if we are on the auto-close flow, and if so show the interact button.
+          const returnUrl = new URLSearchParams(window.location.search).get('return_url');
+          const autoClose = new URL(returnUrl).searchParams.has('__auto_close');
+          if (autoClose) {
+            document.querySelector('#stepOne').classList.add('hidden');
+            document.querySelector('#stepTwo').classList.remove('hidden');
+          } else {
+            redirectToReturnUrl(false);
+            return;
+          }
+        }
+        // The cookie could not be set, so initiate the recovery flow.
+        document.querySelector('.logo').classList.add('hidden');
+        document.querySelector('.spinner').classList.add('hidden');
+        document.querySelector('#error-ui').classList.remove('hidden');
+      }
+
+      // Start the cookie verification process.
+      verifyCanSetCookies();
+    </script>
+  </body>
+</html>
